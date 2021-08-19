@@ -1,0 +1,26 @@
+# https://docs.docker.com/compose/install/
+# sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# sudo chmod +x /usr/local/bin/docker-compose
+# docker-compose --version
+---
+- name: Get installed version
+  command: docker-compose --version
+  register: docker_compose_current_version
+  failed_when: false
+  changed_when: false
+
+- name: Compare version
+  set_fact:
+    docker_compose_version_differ: "{{ docker_compose_current_version.rc != 0 or docker_compose_version not in docker_compose_current_version.stdout }}"
+
+- name: Download the binary
+  get_url:
+    url: "{{ docker_compose_url }}"
+    dest: "{{ docker_compose_path }}"
+  when: docker_compose_version_differ
+
+- name: Apply executable permissions to the binary
+  file:
+    path: "{{ docker_compose_path }}"
+    mode: +x
+  when: docker_compose_version_differ
