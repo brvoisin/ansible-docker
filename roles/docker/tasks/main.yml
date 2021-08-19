@@ -1,0 +1,42 @@
+# https://docs.docker.com/engine/install/ubuntu/
+# https://medium.com/@pierangelo1982/install-docker-with-ansible-d078ad7b0a54
+---
+- name: Install dependences
+  apt:
+    name:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+
+- name: Add GPG key of Docker repository
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+
+- name: Add Docker repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+
+- name: Install Docker
+  apt:
+    name:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+- name: Active and start Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Ensure group docker exists
+  group:
+    name: docker
+
+- name: Adding user {{ docker_user }} to group docker (restart needed)
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
